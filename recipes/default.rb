@@ -26,7 +26,7 @@
 
 fqdn = node['set_fqdn']
 if fqdn
-  fqdn = fqdn.sub('*', node.name)
+  fqdn = fqdn.sub('*', node['hostname'])
   fqdn =~ /^([^.]+)/
   hostname = $1
 
@@ -61,8 +61,10 @@ if fqdn
 
   
   # Set the hostname
+#  log ">>>>" + node[:fqdn] + " >>> " + fqdn
   execute "hostname #{fqdn}" do
-    only_if { node[:fqdn] != fqdn }
+#    not_if { node[:fqdn] == fqdn }
+    not_if "if [[ `hostname -f` == \"#{fqdn}\" ]]"
     notifies :reload, "ohai[reload]"
   end
 
