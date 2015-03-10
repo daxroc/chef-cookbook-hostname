@@ -27,7 +27,7 @@
 
 fqdn = node['set_fqdn']
 if fqdn
-  fqdn = fqdn.sub('*', node.name)
+  fqdn = fqdn.sub('*', node['hostname'])
   fqdn =~ /^([^.]+)/
   hostname = Regexp.last_match[1]
 
@@ -51,21 +51,17 @@ if fqdn
         if node['hostname_cookbook']['hostsfile_ip_interface']
     end
 
-    execute "hostname #{fqdn}" do
-      only_if { node['fqdn'] != fqdn }
-      notifies :reload, 'ohai[reload]', :immediately
-    end
-
   when 'centos', 'redhat', 'amazon', 'scientific'
     hostfile = '/etc/sysconfig/network'
     ruby_block "Update #{hostfile}" do
       block do
         file = Chef::Util::FileEdit.new(hostfile)
-        file.search_file_replace_line('^HOSTNAME', "HOSTNAME=#{fqdn}")
+        file.search_file_replace_line("^HOSTNAME","HOSTNAME=#{fqdn}")
         file.write_file
       end
-      notifies :reload, 'ohai[reload]', :immediately
+      notifies :reload, "ohai[reload_hostname]"
     end
+    
     # this is to persist the correct hostname after machine reboot
     sysctl = '/etc/sysctl.conf'
     ruby_block "Update #{sysctl}" do
@@ -75,46 +71,47 @@ if fqdn
                                      "kernel.hostname=#{hostname}")
         file.write_file
       end
-      notifies :reload, 'ohai[reload]', :immediately
-    end
-    execute "hostname #{hostname}" do
-      only_if { node['hostname'] != hostname }
-      notifies :reload, 'ohai[reload]', :immediately
-    end
-    service 'network' do
-      action :restart
+      notifies :reload, 'ohai[reload_hostname]', :immediately
     end
 
-  else
+  when "ubuntu", "debian"
     file '/etc/hostname' do
       content "#{hostname}\n"
       mode '0644'
-      notifies :reload, 'ohai[reload]', :immediately
-    end
-
-    execute "hostname #{hostname}" do
-      only_if { node['hostname'] != hostname }
-      notifies :reload, 'ohai[reload]', :immediately
+      notifies :reload, 'ohai[reload_hostname]', :immediately
     end
   end
+
+  # Common to all platforms
+
+  # Set the hostname
+  execute "hostname #{fqdn}" do
+    not_if "if [[ `hostname -f` == \"#{fqdn}\" ]]"
+    notifies :reload, "ohai[reload_hostname]"
+  end
+
 
   hostsfile_entry 'localhost' do
     ip_address '127.0.0.1'
     hostname 'localhost'
     action :append
   end
-
+  
+  
   hostsfile_entry 'set hostname' do
     ip_address node['hostname_cookbook']['hostsfile_ip']
     hostname fqdn
     aliases [hostname]
     action :create
-    notifies :reload, 'ohai[reload]', :immediately
+    notifies :reload, 'ohai[reload_hostname]', :immediately
   end
-
-  ohai 'reload' do
+  
+  
+  ohai 'reload_hostname' do
+    plugin 'hostname'
     action :nothing
   end
+
 else
   log 'Please set the set_fqdn attribute to desired hostname' do
     level :warn

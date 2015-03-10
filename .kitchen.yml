@@ -42,16 +42,15 @@ platforms:
     box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-20_chef-provisionerless.box
 
 suites:
+
 - name: default
   run_list:
-    - recipe[hostname::default]
+    - recipe[hostname_test]
   attributes:
     set_fqdn: test.example.com
+
 - name: wildcard
   run_list:
-    - recipe[hostname::default]
-  provisioner:
-    solo_rb:
-      node_name: test
+    - recipe[hostname_test]
   attributes:
     set_fqdn: '*.example.com'
