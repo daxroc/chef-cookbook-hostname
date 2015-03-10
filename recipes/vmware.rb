@@ -23,13 +23,17 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-if node['virtualization']['system'] != "vmware"
-  Chef::Log.warn('node["virtualization"]["system"] is not "vmware".')
+unless node['virtualization']['system'] == "vmware"
+  Chef::Log.warn('node["virtualization"]["system"] is not "vmware" skipping.')
+  return
 end
 
-if !FileTest.executable?("/usr/sbin/vmtoolsd")
+unless FileTest.executable?("/usr/sbin/vmtoolsd")
   Chef::Application.fatal!("/usr/sbin/vmtoolsd is not found or not executable.")
 end
 
-node.default['set_fqdn'] = `/usr/sbin/vmtoolsd --cmd 'info-get guestinfo.hostname'`.chomp
+vmw_hostname = Mixlib::ShellOut.new("/usr/sbin/vmtoolsd --cmd 'info-get guestinfo.hostname'")
+vmw_hostname.run_command
+
+node.set['set_fqdn'] = vmw_hostname.stdout unless vmw_hostname.error!
 include_recipe 'hostname::default'

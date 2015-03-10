@@ -44,6 +44,7 @@ if fqdn
   when "centos", "redhat", "amazon", "scientific"
     hostfile = '/etc/sysconfig/network'
     ruby_block "Update #{hostfile}" do
+      block_name 'update_sysconfig_network'
       block do
         file = Chef::Util::FileEdit.new(hostfile)
         file.search_file_replace_line("^HOSTNAME","HOSTNAME=#{fqdn}")
@@ -61,9 +62,7 @@ if fqdn
 
   
   # Set the hostname
-#  log ">>>>" + node[:fqdn] + " >>> " + fqdn
   execute "hostname #{fqdn}" do
-#    not_if { node[:fqdn] == fqdn }
     not_if "if [[ `hostname -f` == \"#{fqdn}\" ]]"
     notifies :reload, "ohai[reload]"
   end
@@ -88,8 +87,8 @@ if fqdn
 
   ohai "reload" do
     action :nothing
-    node.automatic_attrs[:hostname] = hostname
-    node.automatic_attrs[:fqdn]     = fqdn
+    node.automatic_attrs['hostname'] = hostname
+    node.automatic_attrs['fqdn']     = fqdn
   end
 
 else
