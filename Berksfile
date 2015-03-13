@@ -1,8 +1,8 @@
 # -*- ruby -*-
-site :opscode
+source "https://supermarket.chef.io"
 
 metadata
 
 group :integration do
-  cookbook "minitest-handler"
+  cookbook "hostname_test", :path => "test/fixtures/cookbooks/hostname_test"
 end
