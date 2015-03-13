@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'chefspec'
-require 'chefspec/berkshelf'
+require 'spec_helper'
 
 hostname = 'test'
 domain   = 'example.com'
@@ -37,6 +36,10 @@ describe 'hostname::default' do
       exe = chef_run.execute("hostname #{fqdn}")
       expect(exe).to notify('ohai[reload_hostname]').to(:reload).delayed
       expect(chef_run).to run_execute "hostname #{fqdn}"
+    end
+
+    it "reloads ohai" do
+      expect(chef_run).to_not reload_ohai('reload_hostname')
     end
 
   end
@@ -103,6 +106,14 @@ describe 'hostname::default' do
     it 'creates /etc/rc.conf.d' do
         expect(chef_run).to create_directory('/etc/rc.conf.d')
     end
+    it 'service netif' do
+      expect(chef_run).to_not restart_service('netif')
+    end 
+    it 'update to hostname restarts netif' do
+      f = chef_run.file('/etc/rc.conf.d/hostname')
+      expect(f).to notify('service[netif]').to(:reload)
+      expect(chef_run).to create_file('/etc/rc.conf.d/hostname')
+    end   
   end
 
 end
