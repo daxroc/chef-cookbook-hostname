@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-hostname = '[w-].*' # Regex match any word char, leter, number, underscore, dash
+hostname = '[\w-].*' # Regex match any word char, leter, number, underscore, dash
 domain = "example\.com"
 
 fqdn = "#{hostname}\.#{domain}"
