@@ -1,1 +1,1 @@
-include_recipe "hostname"
+include_recipe 'hostname'

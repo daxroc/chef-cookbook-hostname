@@ -25,13 +25,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-unless node['virtualization']['system'] == "vmware"
+unless node['virtualization']['system'] == 'vmware'
   Chef::Log.warn('node["virtualization"]["system"] is not "vmware" skipping.')
   return
 end
 
-unless FileTest.executable?("/usr/sbin/vmtoolsd")
-  Chef::Application.fatal!("/usr/sbin/vmtoolsd is not found or not executable.")
+unless FileTest.executable?('/usr/sbin/vmtoolsd')
+  Chef::Application.fatal!('/usr/sbin/vmtoolsd is not found or not executable.')
 end
 
 vmw_hostname = Mixlib::ShellOut.new("/usr/sbin/vmtoolsd --cmd 'info-get guestinfo.hostname'")

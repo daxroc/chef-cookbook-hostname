@@ -56,12 +56,12 @@ if fqdn
     ruby_block "Update #{hostfile}" do
       block do
         file = Chef::Util::FileEdit.new(hostfile)
-        file.search_file_replace_line("^HOSTNAME","HOSTNAME=#{fqdn}")
+        file.search_file_replace_line('^HOSTNAME', "HOSTNAME=#{fqdn}")
         file.write_file
       end
-      notifies :reload, "ohai[reload_hostname]"
+      notifies :reload, 'ohai[reload_hostname]'
     end
-    
+
     # this is to persist the correct hostname after machine reboot
     sysctl = '/etc/sysctl.conf'
     ruby_block "Update #{sysctl}" do
@@ -74,7 +74,7 @@ if fqdn
       notifies :reload, 'ohai[reload_hostname]', :immediately
     end
 
-  when "ubuntu", "debian"
+  when 'ubuntu', 'debian'
     file '/etc/hostname' do
       content "#{hostname}\n"
       mode '0644'
@@ -85,19 +85,17 @@ if fqdn
   # Common to all platforms
 
   # Set the hostname
-  execute "hostname #{fqdn}" do
-    not_if "if [[ `hostname -f` == \"#{fqdn}\" ]]"
-    notifies :reload, "ohai[reload_hostname]"
+  execute "hostname #{hostname}" do
+    not_if "if [[ `hostname -s` == \"#{hostname}\" ]]"
+    notifies :reload, 'ohai[reload_hostname]'
   end
-
 
   hostsfile_entry 'localhost' do
     ip_address '127.0.0.1'
     hostname 'localhost'
     action :append
   end
-  
-  
+
   hostsfile_entry 'set hostname' do
     ip_address node['hostname_cookbook']['hostsfile_ip']
     hostname fqdn
@@ -105,8 +103,7 @@ if fqdn
     action :create
     notifies :reload, 'ohai[reload_hostname]', :immediately
   end
-  
-  
+
   ohai 'reload_hostname' do
     plugin 'hostname'
     action :nothing
