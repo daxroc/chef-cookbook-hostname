@@ -56,7 +56,7 @@ if fqdn
     ruby_block "Update #{hostfile}" do
       block do
         file = Chef::Util::FileEdit.new(hostfile)
-        file.search_file_replace_line('^HOSTNAME', "HOSTNAME=#{fqdn}")
+        file.search_file_replace_line('^HOSTNAME', "HOSTNAME=#{hostname}")
         file.write_file
       end
       notifies :reload, 'ohai[reload_hostname]'

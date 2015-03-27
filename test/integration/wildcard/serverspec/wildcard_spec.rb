@@ -35,7 +35,7 @@ when 'redhat'
   describe file('/etc/sysconfig/network') do
     it { should be_file }
     it { should be_readable }
-    its(:content) { should match(/HOSTNAME=#{fqdn}/) }
+    its(:content) { should match(/HOSTNAME=#{hostname}/) }
   end
 
 when 'ubuntu', 'debian'
